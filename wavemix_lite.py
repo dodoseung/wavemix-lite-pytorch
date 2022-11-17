@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 
-
 class twoDDWT(nn.Module):
     def __init__(self, device):
         super(twoDDWT, self).__init__()
@@ -54,30 +53,22 @@ class WaveMixLiteBlock(nn.Module):
     def forward(self, x):
         # Set the residual
         residual = x
-
         # Input conv layer
         x = self.conv_input(x)
-
         # 2D-DWT
         ll, lh, hl, hh = self.twod_dwt(x)
-
         # Concatenate the output images of 2D-DWT
         x = torch.cat((ll, lh, hl, hh), 1)
-        
         # MLP
         x = self.fc(x)
-
         # Transposed conv layer
         x = self.conv_trans(x)
-
         # Batch normalization
         x = self.batch_norm(x)
-
         # Residual connection
         x = x + residual
 
         return x
-
 
 class WaveMixLite(nn.Module):
     def __init__(self, num_block=8, dim_channel=128, mul_factor=2, dropout=0.5, device='cpu'):
@@ -98,10 +89,9 @@ class WaveMixLite(nn.Module):
         
         return x
 
-
 class WaveMixLiteImageClassification(nn.Module):
     def __init__(self, num_class=1000, num_block=8, dim_channel=128, mul_factor=2, dropout=0.5, device='cpu'):
-        super(WaveMixLite, self).__init__()
+        super(WaveMixLiteImageClassification, self).__init__()
         # Set the wave mix lite network
         self.wavemixlite = WaveMixLite(num_block=num_block, dim_channel=dim_channel, mul_factor=mul_factor, dropout=dropout, device=device)
 
@@ -113,16 +103,22 @@ class WaveMixLiteImageClassification(nn.Module):
             nn.Conv2d(3, int(dim_channel / 2), kernel_size=(3, 3), stride=(1, 1), padding='same'),
             nn.Conv2d(int(dim_channel / 2), dim_channel, kernel_size=(3, 3), stride=(1, 1), padding='same')
         )
-
-        # Set the MLP head layer
-        self.fc = nn.Linear()
-
+        
         # Set the global average pooling
-        self.pool = nn.AvgPool1d(1)
-
-        # Set the softmax function
-        self.softmax = nn.Softmax()
+        self.pool = nn.AdaptiveAvgPool2d(1)
+        
+        # Set the MLP layer
+        self.fc = nn.Linear(dim_channel, self.num_class)
 
     def forward(self, x):
-
+        # Initial convolution layer
+        x = self.conv(x)
+        # Pass the WaveMix-Lite network
+        x = self.wavemixlite(x)
+        # Global average pooling
+        x = self.pool(x)
+        x = x.squeeze(-1).squeeze(-1)
+        # MLP
+        x = self.fc(x)
+        
         return x
