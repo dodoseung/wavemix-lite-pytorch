@@ -88,5 +88,3 @@ for epoch in range(epochs):  # loop over the dataset multiple times
         if i % log_period == 0 and i != 0:    # print every 2000 mini-batches
             print(f'[{epoch}, {i:5d}] loss: {running_loss / log_period:.3f}')
             running_loss = 0.0
-
-print('Finished Training')
