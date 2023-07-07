@@ -122,3 +122,40 @@ class WaveMixLiteImageClassification(nn.Module):
         x = self.fc(x)
         
         return x
+    
+class WaveMixLiteSemanticSegmentation(nn.Module):
+    def __init__(self, num_class=20, num_block=8, dim_channel=256, mul_factor=2, dropout=0.5, device='gpu'):
+        super(WaveMixLiteSemanticSegmentation, self).__init__()
+        # Set the wave mix lite network
+        self.wavemixlite = WaveMixLite(num_block=num_block, dim_channel=dim_channel, mul_factor=mul_factor, dropout=dropout, device=device)
+
+        # Set the number of classes
+        self.num_class = num_class
+
+        # Set the initial conv layer
+        self.conv = nn.Sequential(
+            nn.Conv2d(3, int(dim_channel / 2), kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)),
+            nn.Conv2d(int(dim_channel / 2), dim_channel, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))
+        )
+        
+        # Set the transposed convolution layer
+        self.convT = nn.Sequential(
+           nn.ConvTranspose2d(dim_channel, int(dim_channel / 2), kernel_size=(4, 4), stride=(2, 2), padding=(1, 1)),
+           nn.ConvTranspose2d(int(dim_channel / 2), int(dim_channel / 4), kernel_size=(4, 4), stride=(2, 2), padding=(1, 1)) 
+        )
+        
+        # Set the segmentation layer
+        self.segmentation = nn.Conv2d(int(dim_channel / 4), num_class, kernel_size=(1, 1))
+        
+
+    def forward(self, x):
+        # Initial convolution layer
+        x = self.conv(x)
+        # Pass the WaveMix-Lite network
+        x = self.wavemixlite(x)
+        # Pass the transposed conv layer
+        x = self.convT(x)
+        # Pass the segmentation layer
+        x = self.segmentation(x)
+        
+        return x

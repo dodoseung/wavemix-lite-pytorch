@@ -69,7 +69,7 @@ def save_model(model_name=None, epoch=-1, model=None, optimizer=None, loss=-1, c
         best_loss = loss
 
         
-def load_model(model_path=None):
+def load_model(model_path, model=None, optimizer=None):
     """Load the model with epoch, criterion, optimizer, and loss.
     Args:
         model_path (string): Path for model
@@ -84,8 +84,17 @@ def load_model(model_path=None):
     # Get the checkpoint
     checkpoint = torch.load(PATH)
     
-    model = model.load_state_dict(checkpoint['model_state_dict'])
-    optimizer = optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    # Load the model
+    if model is not None:
+        model.load_state_dict(checkpoint['model_state_dict'])
+        print(f"Loaded the model from {PATH} successfully")
+    
+    # Load the optimizer
+    if optimizer is not None:
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        print(f"Loaded the optimizer from {PATH} successfully")
+        
+    # Load the epoch and loss
     epoch = checkpoint['epoch']
     loss = checkpoint['loss']
     

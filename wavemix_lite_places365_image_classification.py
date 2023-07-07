@@ -88,7 +88,6 @@ def train(epoch, train_loader, optimizer, criterion):
     
     if i % config['others']['log_period'] == 0 and i != 0:
       print(f'[{epoch}, {i}]\t Train loss: {train_loss / train_num:.3f}')
-      break
   
   # Average loss
   train_loss /= train_num
