@@ -2,12 +2,12 @@
 data:
   seed: 777
   data_path: '~/.pytorch/CITYSCAPES_data/'
-  batch_size: 256
+  batch_size: 6
   shuffle: True
   drop_last: True
   download: True
   num_workers: 4
-  img_size: [224, 224]
+  img_size: [1024, 2048]
 
 # Model parameters
 model:
